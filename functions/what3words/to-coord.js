@@ -7,9 +7,6 @@ exports.handler = async function(context, event, callback) {
 
   console.log(`Entered ${context.PATH} node version ${process.version} twilio version ${twilio_version}`);
 
-  const twiml = new Twilio.twiml.VoiceResponse();
-  const client = context.getTwilioClient();
-
   console.log(context.W3W_APIKEY);
   console.log(event.w3wwords);
 
@@ -24,8 +21,6 @@ exports.handler = async function(context, event, callback) {
   }).json()
   
   console.log(w3w_json);
-
-  const response = twiml.toString()
 
   callback(null, w3w_json);
 };
