@@ -1,0 +1,319 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "get_placename",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "ask_place",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "ask_place",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "get_coordinates",
+          "event": "speech"
+        },
+        {
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Nicole",
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 130,
+          "y": 340
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "Please say a place",
+        "language": "en-AU",
+        "stop_gather": false,
+        "gather_language": "en-AU",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "get_coordinates",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "get_3words_by_coord",
+          "event": "success"
+        },
+        {
+          "next": "say_can_not_find_place",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS82a0481fda757aecc73e2071650c7a23",
+        "environment_sid": "ZE5cd88cc717628086970460820c39acf2",
+        "offset": {
+          "x": 230,
+          "y": 680
+        },
+        "function_sid": "ZHd325fa9f0edacf07fdd47cef8143f2dd",
+        "parameters": [
+          {
+            "value": "{{widgets.ask_place.SpeechResult}}",
+            "key": "place"
+          }
+        ],
+        "url": "https://what3words-8503-dev.twil.io/googlemaps/coordinates"
+      }
+    },
+    {
+      "name": "get_3words_by_coord",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "say_play_1",
+          "event": "success"
+        },
+        {
+          "next": "say_can_not_find_place",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS82a0481fda757aecc73e2071650c7a23",
+        "environment_sid": "ZE5cd88cc717628086970460820c39acf2",
+        "offset": {
+          "x": 0,
+          "y": 980
+        },
+        "function_sid": "ZH3373f3f9d8e6363e84c83ca18e845a29",
+        "parameters": [
+          {
+            "value": "{{widgets.get_coordinates.parsed.coordinates}}",
+            "key": "coordinates"
+          }
+        ],
+        "url": "https://what3words-8503-dev.twil.io/what3words/to-w3words"
+      }
+    },
+    {
+      "name": "say_play_1",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "send_location",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Nicole",
+        "offset": {
+          "x": 20,
+          "y": 1290
+        },
+        "loop": 1,
+        "say": "I heard {{widgets.ask_place.SpeechResult}} . The three word address for {{widgets.get_coordinates.parsed.formatted_address}} is {{widgets.get_3words_by_coord.parsed.words}}",
+        "language": "en-AU"
+      }
+    },
+    {
+      "name": "get_placename",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "get_coordinates_sms",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -400,
+          "y": 340
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Welcome to What3Word SMS service. Please reply with a place name.",
+        "timeout": 3600
+      }
+    },
+    {
+      "name": "get_coordinates_sms",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "get_3words_by_coord_sms",
+          "event": "success"
+        },
+        {
+          "next": "send_sorry",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS82a0481fda757aecc73e2071650c7a23",
+        "environment_sid": "ZE5cd88cc717628086970460820c39acf2",
+        "offset": {
+          "x": -390,
+          "y": 680
+        },
+        "function_sid": "ZHd325fa9f0edacf07fdd47cef8143f2dd",
+        "parameters": [
+          {
+            "value": "{{widgets.get_placename.inbound.Body}}",
+            "key": "place"
+          }
+        ],
+        "url": "https://what3words-8503-dev.twil.io/googlemaps/coordinates"
+      }
+    },
+    {
+      "name": "get_3words_by_coord_sms",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "send_what3words",
+          "event": "success"
+        },
+        {
+          "next": "send_sorry",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS82a0481fda757aecc73e2071650c7a23",
+        "environment_sid": "ZE5cd88cc717628086970460820c39acf2",
+        "offset": {
+          "x": -660,
+          "y": 960
+        },
+        "function_sid": "ZH3373f3f9d8e6363e84c83ca18e845a29",
+        "parameters": [
+          {
+            "value": "{{widgets.get_coordinates_sms.parsed.coordinates}}",
+            "key": "coordinates"
+          }
+        ],
+        "url": "https://what3words-8503-dev.twil.io/what3words/to-w3words"
+      }
+    },
+    {
+      "name": "send_what3words",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -656,
+          "y": 1279
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "What3Words address for {{widgets.get_placename.inbound.Body}}  is {{widgets.get_3words_by_coord_sms.parsed.words}}  {{widgets.get_3words_by_coord_sms.parsed.map}}"
+      }
+    },
+    {
+      "name": "send_location",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 181,
+          "y": 1588
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Here's the link to {{widgets.ask_place.SpeechResult}} . {{widgets.get_3words_by_coord.parsed.map}}"
+      }
+    },
+    {
+      "name": "say_can_not_find_place",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Nicole",
+        "offset": {
+          "x": 570,
+          "y": 1290
+        },
+        "loop": 1,
+        "say": "Sorry, I can't find the location of {{widgets.ask_place.SpeechResult}}",
+        "language": "en-AU"
+      }
+    },
+    {
+      "name": "send_sorry",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -320,
+          "y": 1280
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I can't find coordinates of {{widgets.get_placename.inbound.Body}}"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
